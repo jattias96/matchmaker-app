@@ -1,5 +1,5 @@
 import React, { useState, useEffect } from 'react';
-import { BrowserRouter as Router, Route, Routes, Link, useNavigate } from 'react-router-dom';
+import { BrowserRouter as Router, Route, Routes, Link, useNavigate, useParams } from 'react-router-dom';
 import './App.css';
 
 type Single = {
@@ -14,20 +14,12 @@ type Single = {
 };
 
 // Main List Page
-const HomePage: React.FC = () => {
-  const [singles, setSingles] = useState<Single[]>(() => {
-    const saved = localStorage.getItem('singles');
-    return saved ? JSON.parse(saved) : [];
-  });
+const HomePage: React.FC<{ singles: Single[]; onDelete: (id: number) => void }> = ({ singles, onDelete }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterGender, setFilterGender] = useState('');
   const [minAge, setMinAge] = useState<number | ''>('');
   const [maxAge, setMaxAge] = useState<number | ''>('');
   const [sortOrder, setSortOrder] = useState<'asc' | 'desc' | ''>('');
-
-  useEffect(() => {
-    localStorage.setItem('singles', JSON.stringify(singles));
-  }, [singles]);
 
   const filteredSingles = singles
     .filter((single) => 
@@ -84,6 +76,10 @@ const HomePage: React.FC = () => {
           <li key={single.id}>
             {single.name}, {single.age}, {single.gender} - {single.occupation}, {single.religiousStatus}, 
             {single.previouslyMarried ? 'Previously Married' : 'Never Married'}, Notes: {single.notes}
+            <div className="actions">
+              <Link to={`/edit/${single.id}`} className="edit-button">Edit</Link>
+              <button onClick={() => onDelete(single.id)} className="delete-button">Delete</button>
+            </div>
           </li>
         ))}
       </ul>
@@ -116,7 +112,6 @@ const AddSinglePage: React.FC<{ onAdd: (single: Single) => void }> = ({ onAdd })
         notes,
       };
       onAdd(newSingle);
-      // Reset form
       setName('');
       setOccupation('');
       setReligiousStatus('');
@@ -153,7 +148,66 @@ const AddSinglePage: React.FC<{ onAdd: (single: Single) => void }> = ({ onAdd })
   );
 };
 
-// Options Page after Submit
+// Edit Single Page
+const EditSinglePage: React.FC<{ singles: Single[]; onEdit: (updatedSingle: Single) => void }> = ({ singles, onEdit }) => {
+  const { id } = useParams<{ id: string }>();
+  const navigate = useNavigate();
+  const single = singles.find((s) => s.id === Number(id));
+
+  const [name, setName] = useState(single?.name || '');
+  const [occupation, setOccupation] = useState(single?.occupation || '');
+  const [religiousStatus, setReligiousStatus] = useState(single?.religiousStatus || '');
+  const [previouslyMarried, setPreviouslyMarried] = useState(single?.previouslyMarried || false);
+  const [age, setAge] = useState<number | ''>(single?.age || '');
+  const [gender, setGender] = useState(single?.gender || '');
+  const [notes, setNotes] = useState(single?.notes || '');
+
+  const handleSubmit = (e: React.FormEvent) => {
+    e.preventDefault();
+    if (name && occupation && religiousStatus && age && gender && id) {
+      const updatedSingle: Single = {
+        id: Number(id),
+        name,
+        occupation,
+        religiousStatus,
+        previouslyMarried,
+        age: Number(age),
+        gender,
+        notes,
+      };
+      onEdit(updatedSingle);
+      navigate('/');
+    }
+  };
+
+  if (!single) return <div>Single not found</div>;
+
+  return (
+    <div className="App">
+      <h1>Edit Single</h1>
+      <form onSubmit={handleSubmit}>
+        <input type="text" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
+        <input type="text" placeholder="Occupation" value={occupation} onChange={(e) => setOccupation(e.target.value)} />
+        <input type="text" placeholder="Religious Status" value={religiousStatus} onChange={(e) => setReligiousStatus(e.target.value)} />
+        <label>
+          Previously Married:
+          <input type="checkbox" checked={previouslyMarried} onChange={(e) => setPreviouslyMarried(e.target.checked)} />
+        </label>
+        <input type="number" placeholder="Age" value={age} onChange={(e) => setAge(e.target.value === '' ? '' : Number(e.target.value))} />
+        <select value={gender} onChange={(e) => setGender(e.target.value)}>
+          <option value="">Select Gender</option>
+          <option value="Male">Male</option>
+          <option value="Female">Female</option>
+          <option value="Other">Other</option>
+        </select>
+        <textarea placeholder="Notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
+        <button type="submit">Save Changes</button>
+      </form>
+    </div>
+  );
+};
+
+// Options Page
 const OptionsPage: React.FC = () => {
   return (
     <div className="App">
@@ -171,16 +225,29 @@ function App() {
     return saved ? JSON.parse(saved) : [];
   });
 
+  useEffect(() => {
+    localStorage.setItem('singles', JSON.stringify(singles));
+  }, [singles]);
+
   const handleAddSingle = (newSingle: Single) => {
     setSingles((prev) => [...prev, newSingle]);
+  };
+
+  const handleEditSingle = (updatedSingle: Single) => {
+    setSingles((prev) => prev.map((s) => (s.id === updatedSingle.id ? updatedSingle : s)));
+  };
+
+  const handleDeleteSingle = (id: number) => {
+    setSingles((prev) => prev.filter((s) => s.id !== id));
   };
 
   return (
     <Router>
       <Routes>
-        <Route path="/" element={<HomePage />} />
+        <Route path="/" element={<HomePage singles={singles} onDelete={handleDeleteSingle} />} />
         <Route path="/add" element={<AddSinglePage onAdd={handleAddSingle} />} />
         <Route path="/options" element={<OptionsPage />} />
+        <Route path="/edit/:id" element={<EditSinglePage singles={singles} onEdit={handleEditSingle} />} />
       </Routes>
     </Router>
   );
