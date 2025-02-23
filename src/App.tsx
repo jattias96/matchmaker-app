@@ -37,7 +37,7 @@ const HomePage: React.FC<{ singles: Single[]; onDelete: (id: number) => void }> 
 
   return (
     <div className="App">
-      <h1>Matchmaker App</h1>
+      <h1>The Shadchan's Notebook</h1>
       <Link to="/add" className="add-button">Add Single</Link>
       <div>
         <input
@@ -50,7 +50,6 @@ const HomePage: React.FC<{ singles: Single[]; onDelete: (id: number) => void }> 
           <option value="">All Genders</option>
           <option value="Male">Male</option>
           <option value="Female">Female</option>
-          <option value="Other">Other</option>
         </select>
         <input
           type="number"
@@ -125,7 +124,7 @@ const AddSinglePage: React.FC<{ onAdd: (single: Single) => void }> = ({ onAdd })
 
   return (
     <div className="App">
-      <h1>Add a New Single</h1>
+      <h1>The Shadchan's Notebook</h1>
       <form onSubmit={handleSubmit}>
         <input type="text" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
         <input type="text" placeholder="Occupation" value={occupation} onChange={(e) => setOccupation(e.target.value)} />
@@ -139,7 +138,6 @@ const AddSinglePage: React.FC<{ onAdd: (single: Single) => void }> = ({ onAdd })
           <option value="">Select Gender</option>
           <option value="Male">Male</option>
           <option value="Female">Female</option>
-          <option value="Other">Other</option>
         </select>
         <textarea placeholder="Notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
         <button type="submit">Submit</button>
@@ -184,7 +182,7 @@ const EditSinglePage: React.FC<{ singles: Single[]; onEdit: (updatedSingle: Sing
 
   return (
     <div className="App">
-      <h1>Edit Single</h1>
+      <h1>The Shadchan's Notebook</h1>
       <form onSubmit={handleSubmit}>
         <input type="text" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
         <input type="text" placeholder="Occupation" value={occupation} onChange={(e) => setOccupation(e.target.value)} />
@@ -198,7 +196,6 @@ const EditSinglePage: React.FC<{ singles: Single[]; onEdit: (updatedSingle: Sing
           <option value="">Select Gender</option>
           <option value="Male">Male</option>
           <option value="Female">Female</option>
-          <option value="Other">Other</option>
         </select>
         <textarea placeholder="Notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
         <button type="submit">Save Changes</button>
@@ -211,7 +208,7 @@ const EditSinglePage: React.FC<{ singles: Single[]; onEdit: (updatedSingle: Sing
 const OptionsPage: React.FC = () => {
   return (
     <div className="App">
-      <h1>Single Added!</h1>
+      <h1>The Shadchan's Notebook</h1>
       <Link to="/add">Add Another Single</Link>
       <Link to="/">Return to Home</Link>
     </div>
