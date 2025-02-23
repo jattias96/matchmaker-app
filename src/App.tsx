@@ -4,13 +4,23 @@ import './App.css';
 
 type Single = {
   id: number;
-  name: string;
+  firstName: string;
+  lastName: string;
+  dateOfBirth: string;
+  email: string;
+  phoneNumber: string;
   occupation: string;
+  notes: string;
+  aliyaPreference: string;
+  location: string;
   religiousStatus: string;
+  spousePreferences: string;
+  height: string;
   previouslyMarried: boolean;
+  hasChildren: boolean;
+  currentRelationshipStatus: string;
   age: number;
   gender: string;
-  notes: string;
 };
 
 type Match = {
@@ -21,7 +31,7 @@ type Match = {
   archived: boolean;
 };
 
-// Dashboard (Main List Page)
+// Dashboard
 const Dashboard: React.FC<{ singles: Single[]; onDelete: (id: number) => void }> = ({ singles, onDelete }) => {
   const [searchTerm, setSearchTerm] = useState('');
   const [filterGender, setFilterGender] = useState('');
@@ -31,7 +41,7 @@ const Dashboard: React.FC<{ singles: Single[]; onDelete: (id: number) => void }>
 
   const filteredSingles = singles
     .filter((single) => 
-      single.name.toLowerCase().includes(searchTerm.toLowerCase()) ||
+      `${single.firstName} ${single.lastName}`.toLowerCase().includes(searchTerm.toLowerCase()) ||
       single.notes.toLowerCase().includes(searchTerm.toLowerCase())
     )
     .filter((single) => (filterGender ? single.gender === filterGender : true))
@@ -70,7 +80,7 @@ const Dashboard: React.FC<{ singles: Single[]; onDelete: (id: number) => void }>
       <ul>
         {filteredSingles.map((single) => (
           <li key={single.id}>
-            {single.name}, {single.age}, {single.gender} - {single.occupation}, {single.religiousStatus}, 
+            {single.firstName} {single.lastName}, {single.age}, {single.gender} - {single.occupation}, {single.religiousStatus}, 
             {single.previouslyMarried ? 'Previously Married' : 'Never Married'}, Notes: {single.notes}
             <div className="actions">
               <Link to={`/edit/${single.id}`} className="edit-button">Edit</Link>
@@ -85,36 +95,77 @@ const Dashboard: React.FC<{ singles: Single[]; onDelete: (id: number) => void }>
 
 // Add Single Page
 const AddSinglePage: React.FC<{ onAdd: (single: Single) => void }> = ({ onAdd }) => {
-  const [name, setName] = useState('');
+  const [firstName, setFirstName] = useState('');
+  const [lastName, setLastName] = useState('');
+  const [dateOfBirth, setDateOfBirth] = useState('');
+  const [email, setEmail] = useState('');
+  const [phoneNumber, setPhoneNumber] = useState('');
   const [occupation, setOccupation] = useState('');
+  const [notes, setNotes] = useState('');
+  const [aliyaPreference, setAliyaPreference] = useState('');
+  const [location, setLocation] = useState('');
   const [religiousStatus, setReligiousStatus] = useState('');
+  const [spousePreferences, setSpousePreferences] = useState('');
+  const [height, setHeight] = useState('');
   const [previouslyMarried, setPreviouslyMarried] = useState(false);
+  const [hasChildren, setHasChildren] = useState(false);
+  const [currentRelationshipStatus, setCurrentRelationshipStatus] = useState('');
   const [age, setAge] = useState<number | ''>('');
   const [gender, setGender] = useState('');
-  const [notes, setNotes] = useState('');
   const navigate = useNavigate();
+
+  const calculateAge = (dob: string) => {
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (name && occupation && religiousStatus && age && gender) {
+    if (firstName && lastName && dateOfBirth && email && phoneNumber && occupation && religiousStatus && age && gender) {
       const newSingle: Single = {
         id: Date.now(),
-        name,
+        firstName,
+        lastName,
+        dateOfBirth,
+        email,
+        phoneNumber,
         occupation,
-        religiousStatus,
-        previouslyMarried,
-        age: Number(age),
-        gender,
         notes,
+        aliyaPreference,
+        location,
+        religiousStatus,
+        spousePreferences,
+        height,
+        previouslyMarried,
+        hasChildren,
+        currentRelationshipStatus,
+        age: dateOfBirth ? calculateAge(dateOfBirth) : Number(age),
+        gender,
       };
       onAdd(newSingle);
-      setName('');
+      setFirstName('');
+      setLastName('');
+      setDateOfBirth('');
+      setEmail('');
+      setPhoneNumber('');
       setOccupation('');
+      setNotes('');
+      setAliyaPreference('');
+      setLocation('');
       setReligiousStatus('');
+      setSpousePreferences('');
+      setHeight('');
       setPreviouslyMarried(false);
+      setHasChildren(false);
+      setCurrentRelationshipStatus('');
       setAge('');
       setGender('');
-      setNotes('');
       navigate('/options');
     }
   };
@@ -127,20 +178,78 @@ const AddSinglePage: React.FC<{ onAdd: (single: Single) => void }> = ({ onAdd })
         <Link to="/matches" className="menu-link">Matches</Link>
       </nav>
       <form onSubmit={handleSubmit}>
-        <input type="text" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
-        <input type="text" placeholder="Occupation" value={occupation} onChange={(e) => setOccupation(e.target.value)} />
-        <input type="text" placeholder="Religious Status" value={religiousStatus} onChange={(e) => setReligiousStatus(e.target.value)} />
-        <label>
-          Previously Married:
+        <div className="form-group">
+          <label>First Name</label>
+          <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Last Name</label>
+          <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Date of Birth</label>
+          <input type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Email</label>
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Phone Number</label>
+          <input type="text" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Occupation</label>
+          <input type="text" value={occupation} onChange={(e) => setOccupation(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Notes</label>
+          <textarea value={notes} onChange={(e) => setNotes(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Aliya Preference</label>
+          <input type="text" value={aliyaPreference} onChange={(e) => setAliyaPreference(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Location</label>
+          <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Religious Status</label>
+          <input type="text" value={religiousStatus} onChange={(e) => setReligiousStatus(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Spouse Preferences</label>
+          <input type="text" value={spousePreferences} onChange={(e) => setSpousePreferences(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Height</label>
+          <input type="text" value={height} onChange={(e) => setHeight(e.target.value)} placeholder="e.g., 5ft10in or 170cm" />
+        </div>
+        <div className="form-group">
+          <label>Previously Married</label>
           <input type="checkbox" checked={previouslyMarried} onChange={(e) => setPreviouslyMarried(e.target.checked)} />
-        </label>
-        <input type="number" placeholder="Age" value={age} onChange={(e) => setAge(e.target.value === '' ? '' : Number(e.target.value))} />
-        <select value={gender} onChange={(e) => setGender(e.target.value)}>
-          <option value="">Select Gender</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-        </select>
-        <textarea placeholder="Notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Has Children</label>
+          <input type="checkbox" checked={hasChildren} onChange={(e) => setHasChildren(e.target.checked)} />
+        </div>
+        <div className="form-group">
+          <label>Current Relationship Status</label>
+          <input type="text" value={currentRelationshipStatus} onChange={(e) => setCurrentRelationshipStatus(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Age</label>
+          <input type="number" value={age} onChange={(e) => setAge(e.target.value === '' ? '' : Number(e.target.value))} />
+        </div>
+        <div className="form-group">
+          <label>Gender</label>
+          <select value={gender} onChange={(e) => setGender(e.target.value)}>
+            <option value="">Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
         <button type="submit">Submit</button>
       </form>
     </div>
@@ -153,26 +262,57 @@ const EditSinglePage: React.FC<{ singles: Single[]; onEdit: (updatedSingle: Sing
   const navigate = useNavigate();
   const single = singles.find((s) => s.id === Number(id));
 
-  const [name, setName] = useState(single?.name || '');
+  const [firstName, setFirstName] = useState(single?.firstName || '');
+  const [lastName, setLastName] = useState(single?.lastName || '');
+  const [dateOfBirth, setDateOfBirth] = useState(single?.dateOfBirth || '');
+  const [email, setEmail] = useState(single?.email || '');
+  const [phoneNumber, setPhoneNumber] = useState(single?.phoneNumber || '');
   const [occupation, setOccupation] = useState(single?.occupation || '');
+  const [notes, setNotes] = useState(single?.notes || '');
+  const [aliyaPreference, setAliyaPreference] = useState(single?.aliyaPreference || '');
+  const [location, setLocation] = useState(single?.location || '');
   const [religiousStatus, setReligiousStatus] = useState(single?.religiousStatus || '');
+  const [spousePreferences, setSpousePreferences] = useState(single?.spousePreferences || '');
+  const [height, setHeight] = useState(single?.height || '');
   const [previouslyMarried, setPreviouslyMarried] = useState(single?.previouslyMarried || false);
+  const [hasChildren, setHasChildren] = useState(single?.hasChildren || false);
+  const [currentRelationshipStatus, setCurrentRelationshipStatus] = useState(single?.currentRelationshipStatus || '');
   const [age, setAge] = useState<number | ''>(single?.age || '');
   const [gender, setGender] = useState(single?.gender || '');
-  const [notes, setNotes] = useState(single?.notes || '');
+
+  const calculateAge = (dob: string) => {
+    const birthDate = new Date(dob);
+    const today = new Date();
+    let age = today.getFullYear() - birthDate.getFullYear();
+    const monthDiff = today.getMonth() - birthDate.getMonth();
+    if (monthDiff < 0 || (monthDiff === 0 && today.getDate() < birthDate.getDate())) {
+      age--;
+    }
+    return age;
+  };
 
   const handleSubmit = (e: React.FormEvent) => {
     e.preventDefault();
-    if (name && occupation && religiousStatus && age && gender && id) {
+    if (firstName && lastName && dateOfBirth && email && phoneNumber && occupation && religiousStatus && age && gender && id) {
       const updatedSingle: Single = {
         id: Number(id),
-        name,
+        firstName,
+        lastName,
+        dateOfBirth,
+        email,
+        phoneNumber,
         occupation,
-        religiousStatus,
-        previouslyMarried,
-        age: Number(age),
-        gender,
         notes,
+        aliyaPreference,
+        location,
+        religiousStatus,
+        spousePreferences,
+        height,
+        previouslyMarried,
+        hasChildren,
+        currentRelationshipStatus,
+        age: dateOfBirth ? calculateAge(dateOfBirth) : Number(age),
+        gender,
       };
       onEdit(updatedSingle);
       navigate('/');
@@ -189,20 +329,78 @@ const EditSinglePage: React.FC<{ singles: Single[]; onEdit: (updatedSingle: Sing
         <Link to="/matches" className="menu-link">Matches</Link>
       </nav>
       <form onSubmit={handleSubmit}>
-        <input type="text" placeholder="Name" value={name} onChange={(e) => setName(e.target.value)} />
-        <input type="text" placeholder="Occupation" value={occupation} onChange={(e) => setOccupation(e.target.value)} />
-        <input type="text" placeholder="Religious Status" value={religiousStatus} onChange={(e) => setReligiousStatus(e.target.value)} />
-        <label>
-          Previously Married:
+        <div className="form-group">
+          <label>First Name</label>
+          <input type="text" value={firstName} onChange={(e) => setFirstName(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Last Name</label>
+          <input type="text" value={lastName} onChange={(e) => setLastName(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Date of Birth</label>
+          <input type="date" value={dateOfBirth} onChange={(e) => setDateOfBirth(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Email</label>
+          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Phone Number</label>
+          <input type="text" value={phoneNumber} onChange={(e) => setPhoneNumber(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Occupation</label>
+          <input type="text" value={occupation} onChange={(e) => setOccupation(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Notes</label>
+          <textarea value={notes} onChange={(e) => setNotes(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Aliya Preference</label>
+          <input type="text" value={aliyaPreference} onChange={(e) => setAliyaPreference(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Location</label>
+          <input type="text" value={location} onChange={(e) => setLocation(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Religious Status</label>
+          <input type="text" value={religiousStatus} onChange={(e) => setReligiousStatus(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Spouse Preferences</label>
+          <input type="text" value={spousePreferences} onChange={(e) => setSpousePreferences(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Height</label>
+          <input type="text" value={height} onChange={(e) => setHeight(e.target.value)} placeholder="e.g., 5ft10in or 170cm" />
+        </div>
+        <div className="form-group">
+          <label>Previously Married</label>
           <input type="checkbox" checked={previouslyMarried} onChange={(e) => setPreviouslyMarried(e.target.checked)} />
-        </label>
-        <input type="number" placeholder="Age" value={age} onChange={(e) => setAge(e.target.value === '' ? '' : Number(e.target.value))} />
-        <select value={gender} onChange={(e) => setGender(e.target.value)}>
-          <option value="">Select Gender</option>
-          <option value="Male">Male</option>
-          <option value="Female">Female</option>
-        </select>
-        <textarea placeholder="Notes" value={notes} onChange={(e) => setNotes(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Has Children</label>
+          <input type="checkbox" checked={hasChildren} onChange={(e) => setHasChildren(e.target.checked)} />
+        </div>
+        <div className="form-group">
+          <label>Current Relationship Status</label>
+          <input type="text" value={currentRelationshipStatus} onChange={(e) => setCurrentRelationshipStatus(e.target.value)} />
+        </div>
+        <div className="form-group">
+          <label>Age</label>
+          <input type="number" value={age} onChange={(e) => setAge(e.target.value === '' ? '' : Number(e.target.value))} />
+        </div>
+        <div className="form-group">
+          <label>Gender</label>
+          <select value={gender} onChange={(e) => setGender(e.target.value)}>
+            <option value="">Select Gender</option>
+            <option value="Male">Male</option>
+            <option value="Female">Female</option>
+          </select>
+        </div>
         <button type="submit">Save Changes</button>
       </form>
     </div>
@@ -261,8 +459,8 @@ const MatchesPage: React.FC<{
       const single1 = singles.find((s) => s.id === match.single1Id);
       const single2 = singles.find((s) => s.id === match.single2Id);
       return (
-        single1?.name.toLowerCase().includes(searchIndividual.toLowerCase()) ||
-        single2?.name.toLowerCase().includes(searchIndividual.toLowerCase())
+        `${single1?.firstName} ${single1?.lastName}`.toLowerCase().includes(searchIndividual.toLowerCase()) ||
+        `${single2?.firstName} ${single2?.lastName}`.toLowerCase().includes(searchIndividual.toLowerCase())
       );
     });
 
@@ -281,7 +479,7 @@ const MatchesPage: React.FC<{
           <option value="">Select First Single</option>
           {singles.map((single) => (
             <option key={single.id} value={single.id}>
-              {single.name} ({single.gender}, {single.age})
+              {single.firstName} {single.lastName} ({single.gender}, {single.age})
             </option>
           ))}
         </select>
@@ -289,7 +487,7 @@ const MatchesPage: React.FC<{
           <option value="">Select Second Single</option>
           {singles.map((single) => (
             <option key={single.id} value={single.id}>
-              {single.name} ({single.gender}, {single.age})
+              {single.firstName} {single.lastName} ({single.gender}, {single.age})
             </option>
           ))}
         </select>
@@ -297,12 +495,7 @@ const MatchesPage: React.FC<{
       </form>
       <h2>Current Matches</h2>
       <div>
-        <input
-          type="text"
-          placeholder="Search by individual name"
-          value={searchIndividual}
-          onChange={(e) => setSearchIndividual(e.target.value)}
-        />
+        <input type="text" placeholder="Search by individual name" value={searchIndividual} onChange={(e) => setSearchIndividual(e.target.value)} />
         <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value)}>
           <option value="">All Statuses</option>
           <option value="Idea">Idea</option>
@@ -319,7 +512,7 @@ const MatchesPage: React.FC<{
           const single2 = singles.find((s) => s.id === match.single2Id);
           return (
             <li key={match.id}>
-              {single1?.name} & {single2?.name} - Status: {match.status}
+              {single1?.firstName} {single1?.lastName} & {single2?.firstName} {single2?.lastName} - Status: {match.status}
               <div className="actions">
                 <select
                   value={match.status}
@@ -346,7 +539,7 @@ const MatchesPage: React.FC<{
           const single2 = singles.find((s) => s.id === match.single2Id);
           return (
             <li key={match.id}>
-              {single1?.name} & {single2?.name} - Status: {match.status}
+              {single1?.firstName} {single1?.lastName} & {single2?.firstName} {single2?.lastName} - Status: {match.status}
               <div className="actions">
                 <button onClick={() => onUpdateMatch({ ...match, archived: false })}>Restore</button>
                 <button onClick={() => onDeleteMatch(match.id)} className="delete-button">Delete</button>
