@@ -1,5 +1,5 @@
 import React, { useState } from 'react';
-import { Single, Match } from '../types';
+import { Single, Match } from '../../types/types';
 import { Link } from 'react-router-dom';
 
 interface Props {

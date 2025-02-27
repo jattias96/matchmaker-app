@@ -1,37 +1,97 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './App.css';
-import { Single, Match } from './types';
-import Dashboard from './components/Dashboard';
-import AddSinglePage from './components/AddSinglePage';
-import EditSinglePage from './components/EditSinglePage';
-import OptionsPage from './components/OptionsPage';
-import MatchesPage from './components/MatchesPage';
+import { Single, Match } from './types/types'; // Adjust the import path as needed
+import { supabase } from './supabaseClient'; // Adjust the import path as needed
+import Dashboard from './components/pages/Dashboard';
+import AddSinglePage from './components/pages/AddSinglePage';
+import EditSinglePage from './components/pages/EditSinglePage';
+import OptionsPage from './components/pages/OptionsPage';
+import MatchesPage from './components/pages/MatchesPage';
 
 function App() {
-  const [singles, setSingles] = useState<Single[]>(() => {
-    const saved = localStorage.getItem('singles');
-    return saved ? JSON.parse(saved) : [];
-  });
-  const [matches, setMatches] = useState<Match[]>(() => {
-    const saved = localStorage.getItem('matches');
-    return saved ? JSON.parse(saved) : [];
-  });
+  const [singles, setSingles] = useState<Single[]>([]);
+  const [matches, setMatches] = useState<Match[]>([]);
+
+  const fetchData = async () => {
+    try {
+      const { data: singlesData, error: singlesError } = await supabase.from('singles').select('*');
+      const { data: matchesData, error: matchesError } = await supabase.from('matches').select('*');
+      if (singlesError) console.error('Singles fetch error:', singlesError);
+      if (matchesError) console.error('Matches fetch error:', matchesError);
+      console.log('Fetched singles:', singlesData);
+      console.log('Fetched matches:', matchesData);
+      setSingles(singlesData || []);
+      setMatches(matchesData || []);
+    } catch (error) {
+      console.error('Fetch error:', error);
+    }
+  };
 
   useEffect(() => {
-    localStorage.setItem('singles', JSON.stringify(singles));
-    localStorage.setItem('matches', JSON.stringify(matches));
-  }, [singles, matches]);
+    fetchData();
+  }, []);
 
-  const handleAddSingle = (newSingle: Single) => setSingles((prev) => [...prev, newSingle]);
-  const handleEditSingle = (updatedSingle: Single) => setSingles((prev) => prev.map((s) => (s.id === updatedSingle.id ? updatedSingle : s)));
-  const handleDeleteSingle = (id: number) => {
-    setSingles((prev) => prev.filter((s) => s.id !== id));
-    setMatches((prev) => prev.filter((m) => m.single1Id !== id && m.single2Id !== id));
+  const handleAddSingle = async (newSingle: Omit<Single, "id">) => {
+    try {
+      console.log('Attempting to insert single:', newSingle);
+      const { data, error } = await supabase.from('singles').insert(newSingle).select();
+      if (error) {
+        console.error('Supabase insert error:', error.message, error.details, error.code);
+        return;
+      }
+      if (data) {
+        console.log('Inserted single:', data[0]); // Includes the auto-generated id
+        await fetchData(); // Refresh data
+      } else {
+        console.warn('No data returned from insert');
+      }
+    } catch (error) {
+      console.error('Unexpected error adding single:', error);
+    }
   };
-  const handleAddMatch = (newMatch: Match) => setMatches((prev) => [...prev, newMatch]);
-  const handleUpdateMatch = (updatedMatch: Match) => setMatches((prev) => prev.map((m) => (m.id === updatedMatch.id ? updatedMatch : m)));
-  const handleDeleteMatch = (id: number) => setMatches((prev) => prev.filter((m) => m.id !== id));
+
+  const handleEditSingle = async (updatedSingle: Single) => {
+    const { data, error } = await supabase
+      .from('singles')
+      .update(updatedSingle)
+      .eq('id', updatedSingle.id)
+      .select();
+    if (data) setSingles((prev) => prev.map((s) => (s.id === updatedSingle.id ? data[0] : s)));
+    if (error) console.error('Error editing single:', error);
+  };
+
+  const handleDeleteSingle = async (id: number) => {
+    const { error } = await supabase.from('singles').delete().eq('id', id);
+    if (!error) {
+      setSingles((prev) => prev.filter((s) => s.id !== id));
+      setMatches((prev) => prev.filter((m) => m.single1Id !== id && m.single2Id !== id));
+    } else {
+      console.error('Error deleting single:', error);
+    }
+  };
+
+  const handleAddMatch = async (newMatch: Omit<Match, "id">) => {
+    const { data, error } = await supabase.from('matches').insert(newMatch).select();
+    if (data) setMatches((prev) => [...prev, data[0]]);
+    if (error) console.error('Error adding match:', error);
+  };
+
+  const handleUpdateMatch = async (updatedMatch: Match) => {
+    const { data, error } = await supabase
+      .from('matches')
+      .update(updatedMatch)
+      .eq('id', updatedMatch.id)
+      .select();
+    if (data) setMatches((prev) => prev.map((m) => (m.id === updatedMatch.id ? data[0] : m)));
+    if (error) console.error('Error updating match:', error);
+  };
+
+  const handleDeleteMatch = async (id: number) => {
+    const { error } = await supabase.from('matches').delete().eq('id', id);
+    if (!error) setMatches((prev) => prev.filter((m) => m.id !== id));
+    else console.error('Error deleting match:', error);
+  };
 
   return (
     <Router>

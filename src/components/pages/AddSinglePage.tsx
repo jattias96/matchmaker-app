@@ -1,10 +1,9 @@
 import React, { useState } from 'react';
 import { useNavigate } from 'react-router-dom';
-import { Single } from '../types';
-import { Link } from 'react-router-dom';
+import { Single } from '../../types/types'; // Adjust the import path as needed
 
 interface Props {
-  onAdd: (single: Single) => void;
+  onAdd: (single: Omit<Single, "id">) => void;
 }
 
 const AddSinglePage: React.FC<Props> = ({ onAdd }) => {
@@ -38,11 +37,10 @@ const AddSinglePage: React.FC<Props> = ({ onAdd }) => {
     return age;
   };
 
-  const handleSubmit = (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
     if (firstName && lastName && dateOfBirth && email && phoneNumber && occupation && religiousStatus && age && gender) {
-      const newSingle: Single = {
-        id: Date.now(),
+      const newSingle: Omit<Single, "id"> = {
         firstName,
         lastName,
         dateOfBirth,
@@ -61,7 +59,9 @@ const AddSinglePage: React.FC<Props> = ({ onAdd }) => {
         age: dateOfBirth ? calculateAge(dateOfBirth) : Number(age),
         gender,
       };
-      onAdd(newSingle);
+      console.log('Adding single:', newSingle);
+      await onAdd(newSingle);
+      // Reset form fields
       setFirstName('');
       setLastName('');
       setDateOfBirth('');
@@ -80,16 +80,14 @@ const AddSinglePage: React.FC<Props> = ({ onAdd }) => {
       setAge('');
       setGender('');
       navigate('/options');
+    } else {
+      console.warn('Form incomplete');
     }
   };
 
   return (
     <div className="App">
       <h1>The Shadchan's Notebook</h1>
-      <nav className="menu">
-        <Link to="/" className="menu-link">Dashboard</Link>
-        <Link to="/matches" className="menu-link">Matches</Link>
-      </nav>
       <form onSubmit={handleSubmit}>
         <div className="form-group">
           <label>First Name</label>
@@ -137,7 +135,7 @@ const AddSinglePage: React.FC<Props> = ({ onAdd }) => {
         </div>
         <div className="form-group">
           <label>Height</label>
-          <input type="text" value={height} onChange={(e) => setHeight(e.target.value)} placeholder="e.g., 5ft10in or 170cm" />
+          <input type="text" value={height} onChange={(e) => setHeight(e.target.value)} placeholder="e.g., 5ft10in or 170 cm" />
         </div>
         <div className="form-group">
           <label>Previously Married</label>

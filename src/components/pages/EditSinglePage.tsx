@@ -1,6 +1,6 @@
 import React, { useState } from 'react';
 import { useNavigate, useParams } from 'react-router-dom';
-import { Single } from '../types';
+import { Single } from '../../types/types';
 import { Link } from 'react-router-dom';
 
 interface Props {

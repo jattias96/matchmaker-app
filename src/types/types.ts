@@ -26,3 +26,5 @@ export type Single = {
     status: 'Idea' | 'Suggested' | 'Dating' | 'Serious' | 'Engaged' | 'Married';
     archived: boolean;
   };
+
+export type Omit<T, K extends keyof T> = Pick<T, Exclude<keyof T, K>>;
