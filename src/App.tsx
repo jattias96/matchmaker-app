@@ -1,8 +1,8 @@
 import React, { useState, useEffect } from 'react';
 import { BrowserRouter as Router, Route, Routes } from 'react-router-dom';
 import './App.css';
-import { Single, Match } from './types/types'; // Adjust the import path as needed
-import { supabase } from './supabaseClient'; // Adjust the import path as needed
+import { Single, Match } from './types/types'; // Adjust if moving types.ts
+import { supabase } from './supabaseClient';
 import Dashboard from './components/pages/Dashboard';
 import AddSinglePage from './components/pages/AddSinglePage';
 import EditSinglePage from './components/pages/EditSinglePage';
@@ -12,6 +12,7 @@ import MatchesPage from './components/pages/MatchesPage';
 function App() {
   const [singles, setSingles] = useState<Single[]>([]);
   const [matches, setMatches] = useState<Match[]>([]);
+  const [loading, setLoading] = useState(true);
 
   const fetchData = async () => {
     try {
@@ -25,6 +26,8 @@ function App() {
       setMatches(matchesData || []);
     } catch (error) {
       console.error('Fetch error:', error);
+    } finally {
+      setLoading(false);
     }
   };
 
@@ -35,14 +38,14 @@ function App() {
   const handleAddSingle = async (newSingle: Omit<Single, "id">) => {
     try {
       console.log('Attempting to insert single:', newSingle);
-      const { data, error } = await supabase.from('singles').insert(newSingle).select();
+      const { data, error } = await supabase.from('singles').insert(newSingle);
       if (error) {
         console.error('Supabase insert error:', error.message, error.details, error.code);
         return;
       }
       if (data) {
-        console.log('Inserted single:', data[0]); // Includes the auto-generated id
-        await fetchData(); // Refresh data
+        console.log('Inserted single:', data[0]);
+        await fetchData();
       } else {
         console.warn('No data returned from insert');
       }
@@ -92,6 +95,8 @@ function App() {
     if (!error) setMatches((prev) => prev.filter((m) => m.id !== id));
     else console.error('Error deleting match:', error);
   };
+
+  if (loading) return <div>Loading...</div>;
 
   return (
     <Router>
