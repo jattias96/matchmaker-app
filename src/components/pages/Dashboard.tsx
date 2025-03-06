@@ -65,7 +65,9 @@ const Dashboard: React.FC<Props> = ({ singles, onDelete }) => {
         } md:translate-x-0 md:static md:flex md:flex-col z-50 shadow-lg`}
       >
         <div className="flex justify-between items-center mb-8">
-          <h2 className="text-xl font-semibold">Shadchan's Notebook</h2>
+          <Link to="/" className="text-xl font-semibold hover:text-purple-300 transition-colors">
+            Shadchan's Notebook
+          </Link>
           <button className="md:hidden text-white" onClick={() => setIsSidebarOpen(false)}>
             <FaTimes size={20} />
           </button>
@@ -96,10 +98,12 @@ const Dashboard: React.FC<Props> = ({ singles, onDelete }) => {
         </button>
 
         <header className="flex flex-col sm:flex-row justify-between items-start sm:items-center mb-6 gap-4">
-          <h1 className="text-2xl font-bold text-gray-800">The Shadchan's Notebook</h1>
+          <Link to="/" className="text-2xl font-bold text-gray-800 hover:text-purple-600 transition-colors">
+            The Shadchan's Notebook
+          </Link>
           <Link
             to="/add"
-            className="bg-blue-600 text-white px-4 py-2 rounded-lg hover:bg-blue-700 transition-colors shadow-sm"
+            className="bg-purple-600 text-white px-4 py-2 rounded-lg hover:bg-purple-700 transition-colors shadow-sm"
           >
             Add Single
           </Link>
@@ -124,12 +128,12 @@ const Dashboard: React.FC<Props> = ({ singles, onDelete }) => {
               placeholder="Search by name or notes"
               value={searchTerm}
               onChange={(e) => setSearchTerm(e.target.value)}
-              className="min-w-[200px] px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              className="min-w-[200px] px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
             />
             <select
               value={filterGender}
               onChange={(e) => setFilterGender(e.target.value)}
-              className="min-w-[120px] px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              className="min-w-[120px] px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
             >
               <option value="">All Genders</option>
               <option value="Male">Male</option>
@@ -140,19 +144,19 @@ const Dashboard: React.FC<Props> = ({ singles, onDelete }) => {
               placeholder="Min Age"
               value={minAge === '' ? '' : minAge}
               onChange={(e) => setMinAge(e.target.value === '' ? '' : Number(e.target.value))}
-              className="min-w-[100px] px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              className="min-w-[100px] px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
             />
             <input
               type="number"
               placeholder="Max Age"
               value={maxAge === '' ? '' : maxAge}
               onChange={(e) => setMaxAge(e.target.value === '' ? '' : Number(e.target.value))}
-              className="min-w-[100px] px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              className="min-w-[100px] px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
             />
             <select
               value={filterReligiousStatus}
               onChange={(e) => setFilterReligiousStatus(e.target.value)}
-              className="min-w-[150px] px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              className="min-w-[150px] px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
             >
               <option value="">All Religious Statuses</option>
               <option value="Orthodox">Orthodox</option>
@@ -162,7 +166,7 @@ const Dashboard: React.FC<Props> = ({ singles, onDelete }) => {
             <select
               value={filterPreviouslyMarried}
               onChange={(e) => setFilterPreviouslyMarried(e.target.value as '' | 'yes' | 'no')}
-              className="min-w-[150px] px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              className="min-w-[150px] px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
             >
               <option value="">All Marital Statuses</option>
               <option value="yes">Previously Married</option>
@@ -171,7 +175,7 @@ const Dashboard: React.FC<Props> = ({ singles, onDelete }) => {
             <select
               value={sortOrder}
               onChange={(e) => setSortOrder(e.target.value as 'asc' | 'desc' | '')}
-              className="min-w-[150px] px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-blue-500 text-sm"
+              className="min-w-[150px] px-4 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
             >
               <option value="">No Sort</option>
               <option value="asc">Age Ascending</option>
@@ -240,7 +244,7 @@ const Dashboard: React.FC<Props> = ({ singles, onDelete }) => {
                         <td className="px-4 py-3 text-sm font-medium space-x-3">
                           <Link
                             to={`/edit/${single.id}`}
-                            className="text-blue-600 hover:text-blue-800 transition-colors"
+                            className="text-purple-600 hover:text-purple-800 transition-colors"
                           >
                             Edit
                           </Link>
