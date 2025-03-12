@@ -1,7 +1,7 @@
 import React, { useState, useCallback, useEffect } from 'react';
-import { Link, useNavigate } from 'react-router-dom'; // Updated import to include Link
+import { Link, useNavigate } from 'react-router-dom';
 import { Single } from '../../types/types';
-import { toast } from 'react-toastify'; // Ensure this is installed and configured
+import { toast } from 'react-toastify';
 
 interface Props {
   onAdd: (single: Omit<Single, 'id'>) => void;
@@ -29,23 +29,28 @@ const AddSinglePage: React.FC<Props> = ({ onAdd }) => {
   });
   const [errors, setErrors] = useState<Partial<Record<keyof Omit<Single, 'id'>, string>>>({});
   const [showPreview, setShowPreview] = useState(false);
+  const [inputMode, setInputMode] = useState<'dob' | 'age'>('dob'); // Default to DOB
   const navigate = useNavigate();
 
   const requiredFields: (keyof Omit<Single, 'id'>)[] = [
     'firstName',
     'lastName',
-    'dateOfBirth',
     'email',
     'phoneNumber',
     'occupation',
     'religiousStatus',
-    'age',
     'gender',
   ];
 
   const validateField = (name: keyof Omit<Single, 'id'>, value: any) => {
     if (requiredFields.includes(name) && !value) {
       return `${name.replace(/([A-Z])/g, ' $1').trim()} is required`;
+    }
+    if (name === 'dateOfBirth' && !value && inputMode === 'dob' && !formData.age) {
+      return 'Date of Birth is required';
+    }
+    if (name === 'age' && !value && inputMode === 'age') {
+      return 'Age is required';
     }
     if (name === 'email' && value && !/\S+@\S+\.\S+/.test(value)) {
       return 'Please enter a valid email address';
@@ -87,14 +92,26 @@ const AddSinglePage: React.FC<Props> = ({ onAdd }) => {
     return age >= 0 ? age : 0;
   }, []);
 
-  // Auto-calculate age when dateOfBirth changes
+  const calculateDOBFromAge = useCallback((age: number) => {
+    const today = new Date('2025-03-11'); // Fixed to March 11, 2025 for consistency
+    const birthYear = today.getFullYear() - age;
+    return `${birthYear}-${String(today.getMonth() + 1).padStart(2, '0')}-${String(today.getDate()).padStart(2, '0')}`;
+  }, []);
+
+  // Update age or DOB based on input mode
   useEffect(() => {
-    if (formData.dateOfBirth) {
+    if (inputMode === 'dob' && formData.dateOfBirth) {
       const calculatedAge = calculateAge(formData.dateOfBirth);
       setFormData((prev) => ({ ...prev, age: calculatedAge }));
       setErrors((prev) => ({ ...prev, age: validateField('age', calculatedAge) }));
+    } else if (inputMode === 'age' && formData.age) {
+      const calculatedDOB = calculateDOBFromAge(Number(formData.age));
+      setFormData((prev) => ({ ...prev, dateOfBirth: calculatedDOB }));
+      setErrors((prev) => ({ ...prev, dateOfBirth: '' })); // Clear DOB error when using age
+    } else {
+      setFormData((prev) => ({ ...prev, age: 0, dateOfBirth: '' }));
     }
-  }, [formData.dateOfBirth, calculateAge]);
+  }, [inputMode, formData.dateOfBirth, formData.age, calculateAge, calculateDOBFromAge]);
 
   const handleSubmit = async (e: React.FormEvent) => {
     e.preventDefault();
@@ -104,6 +121,13 @@ const AddSinglePage: React.FC<Props> = ({ onAdd }) => {
       if (error) newErrors[field] = error;
     });
 
+    // Require either DOB or age based on input mode
+    if (inputMode === 'dob' && !formData.dateOfBirth) {
+      newErrors.dateOfBirth = 'Date of Birth is required';
+    } else if (inputMode === 'age' && !formData.age) {
+      newErrors.age = 'Age is required';
+    }
+
     setErrors(newErrors);
     if (Object.keys(newErrors).length > 0) {
       toast.warn('Please fix the errors in the form.');
@@ -112,7 +136,7 @@ const AddSinglePage: React.FC<Props> = ({ onAdd }) => {
 
     const newSingle: Omit<Single, 'id'> = {
       ...formData,
-      age: formData.dateOfBirth ? calculateAge(formData.dateOfBirth) : formData.age,
+      age: formData.age || 0,
     };
     try {
       await onAdd(newSingle);
@@ -168,6 +192,7 @@ const AddSinglePage: React.FC<Props> = ({ onAdd }) => {
     });
     setErrors({});
     setShowPreview(false);
+    setInputMode('dob'); // Reset to default mode
     toast.info('Form cleared.');
   };
 
@@ -241,29 +266,87 @@ const AddSinglePage: React.FC<Props> = ({ onAdd }) => {
                     </p>
                   )}
                 </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="dateOfBirth">
-                    Date of Birth
-                  </label>
-                  <input
-                    id="dateOfBirth"
-                    type="date"
-                    name="dateOfBirth"
-                    value={formData.dateOfBirth}
-                    onChange={handleChange}
-                    onBlur={handleBlur}
-                    required
-                    className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 text-sm ${
-                      errors.dateOfBirth ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-purple-500'
-                    }`}
-                    aria-invalid={!!errors.dateOfBirth}
-                    aria-describedby={errors.dateOfBirth ? 'dateOfBirth-error' : undefined}
-                  />
-                  {errors.dateOfBirth && (
-                    <p id="dateOfBirth-error" className="text-red-500 text-xs mt-1">
-                      {errors.dateOfBirth}
-                    </p>
-                  )}
+                {/* Input Mode Selection and Fields */}
+                <div className="md:col-span-2">
+                  <div className="mb-2">
+                    <label className="block text-sm font-medium text-gray-700 mb-1">Input Preference:</label>
+                    <div className="flex space-x-4">
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="inputMode"
+                          value="dob"
+                          checked={inputMode === 'dob'}
+                          onChange={() => setInputMode('dob')}
+                          className="mr-2"
+                        />
+                        Date of Birth
+                      </label>
+                      <label className="flex items-center">
+                        <input
+                          type="radio"
+                          name="inputMode"
+                          value="age"
+                          checked={inputMode === 'age'}
+                          onChange={() => setInputMode('age')}
+                          className="mr-2"
+                        />
+                        Age
+                      </label>
+                    </div>
+                  </div>
+                  <div className="flex space-x-4">
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="dateOfBirth">
+                        Date of Birth
+                      </label>
+                      <input
+                        id="dateOfBirth"
+                        type="date"
+                        name="dateOfBirth"
+                        value={formData.dateOfBirth}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        disabled={inputMode === 'age'}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 text-sm ${
+                          errors.dateOfBirth
+                            ? 'border-red-500 focus:ring-red-500'
+                            : 'border-gray-300 focus:ring-purple-500'
+                        } ${inputMode === 'age' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                        aria-invalid={!!errors.dateOfBirth}
+                        aria-describedby={errors.dateOfBirth ? 'dateOfBirth-error' : undefined}
+                      />
+                      {errors.dateOfBirth && (
+                        <p id="dateOfBirth-error" className="text-red-500 text-xs mt-1">
+                          {errors.dateOfBirth}
+                        </p>
+                      )}
+                    </div>
+                    <div className="flex-1">
+                      <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="age">
+                        Age
+                      </label>
+                      <input
+                        id="age"
+                        type="number"
+                        name="age"
+                        value={formData.age}
+                        onChange={handleChange}
+                        onBlur={handleBlur}
+                        disabled={inputMode === 'dob'}
+                        className={`w-full px-3 py-2 border rounded-lg focus:outline-none focus:ring-2 text-sm ${
+                          errors.age ? 'border-red-500 focus:ring-red-500' : 'border-gray-300 focus:ring-purple-500'
+                        } ${inputMode === 'dob' ? 'bg-gray-100 cursor-not-allowed' : ''}`}
+                        aria-invalid={!!errors.age}
+                        aria-describedby={errors.age ? 'age-error' : undefined}
+                      />
+                      {errors.age && (
+                        <p id="age-error" className="text-red-500 text-xs mt-1">
+                          {errors.age}
+                        </p>
+                      )}
+                    </div>
+                  </div>
                 </div>
                 <div>
                   <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="email">
@@ -476,20 +559,6 @@ const AddSinglePage: React.FC<Props> = ({ onAdd }) => {
                     onChange={handleChange}
                     className="w-full px-3 py-2 border border-gray-300 rounded-lg focus:outline-none focus:ring-2 focus:ring-purple-500 text-sm"
                     aria-label="Current Relationship Status"
-                  />
-                </div>
-                <div>
-                  <label className="block text-sm font-medium text-gray-700 mb-1" htmlFor="age">
-                    Age
-                  </label>
-                  <input
-                    id="age"
-                    type="number"
-                    name="age"
-                    value={formData.age}
-                    readOnly // Make age read-only since it's auto-calculated
-                    className="w-full px-3 py-2 border border-gray-300 rounded-lg bg-gray-100 cursor-not-allowed text-sm"
-                    aria-label="Age (auto-calculated)"
                   />
                 </div>
                 <div>
